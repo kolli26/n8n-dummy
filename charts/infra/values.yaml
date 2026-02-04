@@ -1,0 +1,15 @@
+issuer:
+  name: "letsencrypt-dns01"
+  dnsSecretsNamespace: "cert-manager"
+  apiTokenSecret: "<YOUR_DNS_API_TOKEN_HERE>"
+  email: "admin@example.com"
+  privateKeyName: "letsencrypt-account-key"
+  solvers:
+    - dns01:
+        cloudflare:
+          apiTokenSecretRef:
+            name: "cloudflare-api-token"
+            key: "api-token"
+    - http01:
+        ingress:
+          ingressClassName: traefik

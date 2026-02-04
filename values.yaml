@@ -1,0 +1,56 @@
+subdomain: n8n
+domainName: example.com
+timezone: Europe/Budapest
+nodeEnv: production
+
+n8n:
+  tag: "2.4.7"
+  enforceSettingsFilePermissions: true
+  secureCookie: true
+  diagnosticsEnabled: false
+  port: 5678
+  executionsMode: queue
+  emailMode: smtp
+  defaultBinaryDataMode: database
+  worker:
+    replicas: 3
+  runners:
+    taskBrokerPort: 5679
+    brokerListenAddress: 0.0.0.0
+  ingress:
+    tls: false
+
+database:
+  tag: "18-alpine"
+  type: postgresdb
+  host: "postgres-svc"
+  port: 5432
+  databaseName: n8n
+  user: n8n
+
+redis:
+  tag: "8-alpine"
+  host: "redis-svc"
+  port: 6379
+
+secrets:
+  n8nEncryptionKey: ""
+  n8nRunnersAuthToken: ""
+  dbPostgresPassword: ""
+
+infra:
+  issuer:
+    name: "letsencrypt-dns01"
+    dnsSecretsNamespace: "cert-manager"
+    apiTokenSecret: ""
+    email: "test@test.dev"
+    privateKeyName: "letsencrypt-account-key"
+    solvers: # This is a standard solver config from https://cert-manager.io/docs/configuration/acme/
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: "cloudflare-api-token"
+              key: "api-token"
+      - http01:
+          ingress:
+            ingressClassName: traefik

@@ -1,0 +1,28 @@
+{{- range .Values.issuer.solvers }}
+  {{- if .dns01 }}
+  {{- $provider := (keys .dns01 | first) }}
+  {{- $config := (index .dns01 $provider) }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $config.apiTokenSecretRef.name | quote }}
+  namespace: {{ $.Values.issuer.dnsSecretsNamespace | default "cert-manager" | quote }}
+type: Opaque
+stringData:
+  {{ $config.apiTokenSecretRef.key }}: {{ $.Values.issuer.apiTokenSecret }}
+  {{- end }}
+{{- end }}
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ .Values.issuer.name | default "letsencrypt-global" }}
+spec:
+  acme:
+    email: {{ .Values.issuer.email }}
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: {{ .Values.issuer.privateKeyName }}
+    solvers:
+      {{- toYaml .Values.issuer.solvers | nindent 6 }}

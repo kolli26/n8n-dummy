@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n-main
+spec:
+  selector:
+    matchLabels:
+      app: n8n-main
+  template:
+    metadata:
+      labels:
+        app: n8n-main
+    spec:
+      containers:
+        - name: n8n-main
+          image: n8nio/n8n:{{ .Values.n8n.tag }}
+          restartPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: n8n-config
+          env:
+            - name: N8N_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secrets
+                  key: N8N_ENCRYPTION_KEY
+            - name: N8N_RUNNERS_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secrets
+                  key: N8N_RUNNERS_AUTH_TOKEN
+            - name: DB_POSTGRESDB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secrets
+                  key: DB_POSTGRESDB_PASSWORD
+          volumeMounts:
+            - name: n8n-data
+              mountPath: /home/node/.n8n
+        - name: n8n-main-runner
+          image: n8nio/runners:{{ .Values.n8n.tag }}
+          restartPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: n8n-config
+          env:
+            - name: N8N_RUNNERS_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secrets
+                  key: N8N_RUNNERS_AUTH_TOKEN   
+      volumes:
+        - name: n8n-data
+          persistentVolumeClaim:
+            claimName: n8n-data
